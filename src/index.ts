@@ -1,12 +1,21 @@
-import {APIGatewayEvent, APIGatewayProxyResult, Context, Handler} from "aws-lambda";
+import {TodoAPI} from './todoApi'
+import { DDBTodoService } from './todoService';
+import { consoleLoggingFilter, httpErrorFilter } from '@hexlabs/apigateway-ts';
+import { Handler, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
+const environment: {
+    BASE_PATH: string;
+    TODO_TABLE: string;
+  } = process.env as any;
 
-export const handler: Handler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
-  console.log(JSON.stringify(event));
-  console.log(JSON.stringify(context));
-  console.log([['a', 'b'], ['c']].flatMap((a) => a));
-  return {
-    statusCode: 200,
-    body: "Hello World!"
-  }
-};
+const todoService = new DDBTodoService(environment.TODO_TABLE);
+const filteredTodoAPI = new TodoAPI(
+    todoService, 
+    environment.BASE_PATH,
+    [consoleLoggingFilter, 
+    httpErrorFilter]
+    )
+
+export const handler: Handler<APIGatewayProxyEvent, APIGatewayProxyResult> = 
+  async event => await filteredTodoAPI.handle(event)
+
