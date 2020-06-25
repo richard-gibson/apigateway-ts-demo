@@ -1,0 +1,60 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.0.0
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+        env: { CI: true }
+
+      - name: Production Build
+        run: npm ci && npm run build
+        env: { CI: true }
+
+      - name: Install KloudFormation
+        run: curl -sSL install.kloudformation.hexlabs.io | bash -s -- -local
+
+      - name: Deploy Production Stack
+        run: ./kloudformation.sh -m serverless@1.1.7 -v 1.1.166 deploy -stack-name typescript-lambda-template-$ENVIRONMENT -bucket hexlabs-deployments -output output.properties -location dist
+        if: github.ref == 'refs/heads/master'
+        env:
+          ENVIRONMENT: prod
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Deploy Development Stack
+        run: ./kloudformation.sh -m serverless@1.1.7 -v 1.1.166 deploy -stack-name typescript-lambda-template-$ENVIRONMENT -bucket hexlabs-deployments -output output.properties -location dist
+        if: github.ref != 'refs/heads/master'
+        env:
+          ENVIRONMENT: dev
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Upload Template
+        uses: actions/upload-artifact@v1
+        with:
+          name: cloudformation-template
+          path: template.yml
