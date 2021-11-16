@@ -68,7 +68,7 @@
     "@types/uuid": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
-    "aws-sdk": "^2.592.0",
+    "aws-sdk": "^2.814.0",
     "eslint": "^6.7.2",
     "eslint-plugin-jest": "^23.1.1",
     "husky": "^3.1.0",
