@@ -80,7 +80,7 @@
     "ts-loader": "^6.2.1",
     "typescript": "^3.9.5",
     "webpack": "^4.41.3",
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "@hexlabs/apigateway-ts": "^1.0.13"
